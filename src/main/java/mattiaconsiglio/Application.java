@@ -75,7 +75,11 @@ public class Application {
         System.out.println("-------------------------------- EXERCISE 3 --------------------------------");
 
         TopTenExpesiveProducts(products).forEach(System.out::println);
-        
+
+
+        System.out.println("-------------------------------- EXERCISE 4 --------------------------------");
+
+        System.out.println("Orders average: " + OrdersAverage(orders));
     }
 
     public static Map<String, List<Order>> OrdersByCustomer(List<Order> orders) {
@@ -88,6 +92,10 @@ public class Application {
 
     public static List<Product> TopTenExpesiveProducts(List<Product> products) {
         return products.stream().sorted(Comparator.comparingDouble(Product::getPrice).reversed()).limit(10).toList();
+    }
+
+    public static double OrdersAverage(List<Order> orders) {
+        return orders.stream().mapToDouble(order -> order.getProducts().stream().mapToDouble(Product::getPrice).sum()).average().getAsDouble();
     }
 
 }
