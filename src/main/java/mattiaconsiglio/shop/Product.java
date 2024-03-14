@@ -8,10 +8,11 @@ public class Product {
     private String category;
     private Double price;
 
+
     public Product(String name, String category) {
         this.name = name;
         this.category = category;
-        this.price = new Random().nextDouble(5, 201);
+        this.price = Math.floor(new Random().nextDouble(5, 201) * 100) / 100;
         this.id = new Random().nextLong();
     }
 

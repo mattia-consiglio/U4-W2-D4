@@ -72,6 +72,10 @@ public class Application {
 
         OrderTotalByCustomer(orders).forEach((name, total) -> System.out.println("Customer: " + name + ", Total: " + total));
 
+        System.out.println("-------------------------------- EXERCISE 3 --------------------------------");
+
+        TopTenExpesiveProducts(products).forEach(System.out::println);
+        
     }
 
     public static Map<String, List<Order>> OrdersByCustomer(List<Order> orders) {
@@ -82,5 +86,8 @@ public class Application {
         return orders.stream().collect(Collectors.groupingBy(order -> order.getCustomer().getName(), Collectors.summingDouble(order -> order.getProducts().stream().mapToDouble(Product::getPrice).sum())));
     }
 
+    public static List<Product> TopTenExpesiveProducts(List<Product> products) {
+        return products.stream().sorted(Comparator.comparingDouble(Product::getPrice).reversed()).limit(10).toList();
+    }
 
 }
