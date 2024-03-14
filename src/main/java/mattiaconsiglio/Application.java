@@ -4,7 +4,11 @@ import com.github.javafaker.Faker;
 import mattiaconsiglio.shop.Customer;
 import mattiaconsiglio.shop.Order;
 import mattiaconsiglio.shop.Product;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Supplier;
@@ -80,22 +84,91 @@ public class Application {
         System.out.println("-------------------------------- EXERCISE 4 --------------------------------");
 
         System.out.println("Orders average: " + OrdersAverage(orders));
+
+        System.out.println("-------------------------------- EXERCISE 5 --------------------------------");
+
+        ProductsSumByCategory(products).forEach((category, total) -> System.out.println("Category: " + category + " Total: " + total));
+
+        SaveProductsOnDisk(products);
+        System.out.println("-------------------------------- EXERCISE 7 --------------------------------");
+        List<Product> productsFromFile = ReadProductsOnDisk();
+        productsFromFile.forEach(System.out::println);
+
     }
 
     public static Map<String, List<Order>> OrdersByCustomer(List<Order> orders) {
-        return orders.stream().collect(Collectors.groupingBy(order -> order.getCustomer().getName()));
+        return orders.stream().
+                collect(
+                        Collectors.groupingBy(order -> order.getCustomer().getName())
+                );
     }
 
     public static Map<String, Double> OrderTotalByCustomer(List<Order> orders) {
-        return orders.stream().collect(Collectors.groupingBy(order -> order.getCustomer().getName(), Collectors.summingDouble(order -> order.getProducts().stream().mapToDouble(Product::getPrice).sum())));
+        return orders.stream().
+                collect(
+                        Collectors.groupingBy(
+                                order -> order.getCustomer().getName(),
+                                Collectors.summingDouble(
+                                        order -> order.getProducts().stream().mapToDouble(Product::getPrice).sum()
+                                )
+                        )
+                );
     }
 
     public static List<Product> TopTenExpesiveProducts(List<Product> products) {
-        return products.stream().sorted(Comparator.comparingDouble(Product::getPrice).reversed()).limit(10).toList();
+        return products.stream().sorted(
+                Comparator.comparingDouble(Product::getPrice).reversed()
+        ).limit(10).toList();
     }
 
     public static double OrdersAverage(List<Order> orders) {
-        return orders.stream().mapToDouble(order -> order.getProducts().stream().mapToDouble(Product::getPrice).sum()).average().getAsDouble();
+        return orders.stream()
+                .mapToDouble(
+                        order ->
+                                order.getProducts().stream().
+                                        mapToDouble(Product::getPrice).sum()
+                ).average().getAsDouble();
     }
 
+    public static Map<String, Double> ProductsSumByCategory(List<Product> products) {
+        return products.stream().collect(Collectors.groupingBy(Product::getCategory,
+                Collectors.summingDouble(Product::getPrice)));
+    }
+
+    public static void SaveProductsOnDisk(List<Product> products) {
+        File file = new File("src/products.txt");
+        try {
+            FileUtils.writeStringToFile(file, "", StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+
+
+        products.forEach(product -> {
+            try {
+                FileUtils.writeStringToFile(file, product.getName() + "@" + product.getCategory() + "@" + product.getPrice() + System.lineSeparator(), StandardCharsets.UTF_8, true);
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+        });
+
+    }
+
+    public static List<Product> ReadProductsOnDisk() {
+        List<Product> products = new ArrayList();
+        File file = new File("src/products.txt");
+        if (file.canRead()) {
+            try {
+                String fileContent = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+
+                Arrays.stream(fileContent.split(System.lineSeparator())).forEach(string -> {
+                    String[] productArray = string.split("@");
+                    products.add(new Product(productArray[0], productArray[1], Double.parseDouble(productArray[2])));
+                });
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return products;
+    }
 }
